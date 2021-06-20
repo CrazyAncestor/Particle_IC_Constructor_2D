@@ -1,4 +1,4 @@
-#include "Particle_IC_Constructor.h"
+#include "Particle_IC_Constructor_2D.h"
 double Models_NEWTON_G;
 double Models_rho;
 double Models_r;
@@ -14,7 +14,7 @@ double *Table_MassProf_derho_overdx_Models;
 double *Table_MassProf_g_Models;
 double *Table_MassProf_pot_Models;
 
-double Particle_IC_Constructor::randomReal(double low,double high){
+double Particle_IC_Constructor_2D::randomReal(double low,double high){
   std::random_device rd;
 
     /* 梅森旋轉演算法 */
@@ -32,12 +32,12 @@ double CUBE(double a){
   return pow(a,3.0);
 }
 
-Particle_IC_Constructor::Particle_IC_Constructor()
+Particle_IC_Constructor_2D::Particle_IC_Constructor_2D()
 {
 
 }
 
-Particle_IC_Constructor::~Particle_IC_Constructor()
+Particle_IC_Constructor_2D::~Particle_IC_Constructor_2D()
 {
 
 }
@@ -47,14 +47,14 @@ Particle_IC_Constructor::~Particle_IC_Constructor()
 
 
 //statistics
-double Particle_IC_Constructor::ave(double* a,int start,int fin){
+double Particle_IC_Constructor_2D::ave(double* a,int start,int fin){
   double sum=0;
   for(int k=start;k<fin;k++){
     sum+=a[k];
   }
   return sum/(fin-start);
 }
-double Particle_IC_Constructor::var_n(double* a,int start,int fin){
+double Particle_IC_Constructor_2D::var_n(double* a,int start,int fin){
   double sum=0;
   for(int k=start;k<fin;k++){
     sum+=(a[k])*(a[k]);
@@ -62,7 +62,7 @@ double Particle_IC_Constructor::var_n(double* a,int start,int fin){
   sum=sum-(fin-start)*pow(ave(a,start,fin),2);
   return sum;
 }
-double Particle_IC_Constructor::cor(double* x,double* y,int start,int fin){
+double Particle_IC_Constructor_2D::cor(double* x,double* y,int start,int fin){
   double up=0,down = pow(var_n(x,start,fin)*var_n(y,start,fin),0.5);
   double ave_x = ave(x,start,fin),ave_y = ave(y,start,fin);
   for(int k=start;k<fin;k++){
@@ -70,7 +70,7 @@ double Particle_IC_Constructor::cor(double* x,double* y,int start,int fin){
   }
   return up/down;
 }
-void Particle_IC_Constructor::mask(double* x,int start,int fin){
+void Particle_IC_Constructor_2D::mask(double* x,int start,int fin){
   double standard=3;
   for(int j=start;j<fin;j++){
     bool flag=0;
@@ -84,7 +84,7 @@ void Particle_IC_Constructor::mask(double* x,int start,int fin){
     }
   }
 }
-void Particle_IC_Constructor::add_num(double* x,int start,int fin){
+void Particle_IC_Constructor_2D::add_num(double* x,int start,int fin){
   double sum=0;
   int num=0;
   for(int j=start;j<fin;j++){
@@ -99,7 +99,7 @@ void Particle_IC_Constructor::add_num(double* x,int start,int fin){
     }
   }
 }
-void Particle_IC_Constructor::smooth_all(double* x,int start,int fin){
+void Particle_IC_Constructor_2D::smooth_all(double* x,int start,int fin){
   int num=10;
   for(int k=start;k<fin-num+1;k++){
     mask(x,k,k+num);
@@ -109,7 +109,7 @@ void Particle_IC_Constructor::smooth_all(double* x,int start,int fin){
   }
 }
 
-double Particle_IC_Constructor::slope(double* x,double* y,int start,int fin){
+double Particle_IC_Constructor_2D::slope(double* x,double* y,int start,int fin){
   double cor_ = cor(x,y,start,fin);
   double var_n_x =var_n(x,start,fin), var_n_y =var_n(y,start,fin);
   double s =cor_*pow(var_n_y,0.5)/pow(var_n_x,0.5);
@@ -179,7 +179,7 @@ double inverse_psi_to_x_Models (double psi) {
   gsl_root_fsolver_free (s);
   return x0;
 }
-double Particle_IC_Constructor::integration_eng_base_Models(double eng){
+double Particle_IC_Constructor_2D::integration_eng_base_Models(double eng){
   double min =  eng_min_Models;
   double max = eng;
   int num=1000;
@@ -200,14 +200,14 @@ double Particle_IC_Constructor::integration_eng_base_Models(double eng){
 //Different Model Type
 //Plummer
 double mass_base_Plummer(double x,void* nothing){
-    return 4*M_PI*pow(Models_r,3)*(Models_rho*pow(x,2)*pow(1+x*x,-2.5));
+    return 2*M_PI*pow(Models_r,2)*(Models_rho*pow(x,1)*pow(1+x*x,-2.5));//important
 }
 double mass_base_Plummer_trunc(double x,void* trunc_fac){
   double fac = *(double *) trunc_fac;
   double x0 = fac*Models_maxr/Models_r;
   double xmax = Models_maxr/Models_r;
   
-  if(x<x0) return 4*M_PI*pow(Models_r,3)*(Models_rho*pow(x,2)*pow(1+x*x,-2.5));
+  if(x<x0) return 2*M_PI*pow(Models_r,2)*(Models_rho*pow(x,1)*pow(1+x*x,-2.5));//important
   else {
     double rho0 = Models_rho*pow(x0,2)*pow(1+x0,-2.5);
     double rho = rho0 *( 1 - pow(1-pow((x-xmax)/(xmax-x0) ,2) ,0.5 ) );
@@ -217,14 +217,14 @@ double mass_base_Plummer_trunc(double x,void* trunc_fac){
 
 //NFW
 double mass_base_NFW(double x,void* nothing){
-    return 4*M_PI*pow(Models_r,3)*(Models_rho*(x/((1+x)*(1+x))));
+    return 2*M_PI*pow(Models_r,2)*(Models_rho*(1/((1+x)*(1+x))));//important
 }
 double mass_base_NFW_trunc(double x,void* trunc_fac){
   double fac = *(double *) trunc_fac;
   double x0 = fac*Models_maxr/Models_r;
   double xmax = Models_maxr/Models_r;
   
-  if(x<x0) return 4*M_PI*pow(Models_r,3)*(Models_rho*(x/((1+x)*(1+x))));
+  if(x<x0) return 2*M_PI*pow(Models_r,2)*(Models_rho*(1/((1+x)*(1+x))));//important
   else {
     double rho0 = Models_rho*(1/(x0*(1+x0)*(1+x0)));
     double rho = rho0 *( 1 - pow(1-pow((x-xmax)/(xmax-x0) ,2) ,0.5 ) );
@@ -234,14 +234,14 @@ double mass_base_NFW_trunc(double x,void* trunc_fac){
 
 //Burkert
 double mass_base_Burkert(double x,void* nothing){
-    return 4*M_PI*pow(Models_r,3)*(Models_rho*(x*x*(1/((1+x)*(1+x*x)))));
+    return 2*M_PI*pow(Models_r,2)*(Models_rho*(x*(1/((1+x)*(1+x*x)))));//important
 }
 double mass_base_Burkert_trunc(double x,void* trunc_fac){
   double fac = *(double *) trunc_fac;
   double x0 = fac*Models_maxr/Models_r;
   double xmax = Models_maxr/Models_r;
   
-  if(x<x0) return 4*M_PI*pow(Models_r,3)*(Models_rho*(x*x*(1/((1+x)*(1+x*x)))));
+  if(x<x0) return 2*M_PI*pow(Models_r,2)*(Models_rho*(x*(1/((1+x)*(1+x*x)))));//important
   else {
     double rho0 = Models_rho*(1/((1+x0)*(1+x0*x0)));
     double rho = rho0 *( 1 - pow(1-pow((x-xmax)/(xmax-x0) ,2) ,0.5 ) );
@@ -251,14 +251,14 @@ double mass_base_Burkert_trunc(double x,void* trunc_fac){
 
 //Jaffe
 double mass_base_Jaffe(double x,void* nothing){
-    return 4*M_PI*pow(Models_r,3)*(Models_rho*(1/(1+x)));
+    return 2*M_PI*pow(Models_r,2)*(Models_rho*(1/(1+x)/x));//important
 }
 double mass_base_Jaffe_trunc(double x,void* trunc_fac){
   double fac = *(double *) trunc_fac;
   double x0 = fac*Models_maxr/Models_r;
   double xmax = Models_maxr/Models_r;
   
-  if(x<x0) return 4*M_PI*pow(Models_r,3)*(Models_rho*(1/(1+x)));
+  if(x<x0) return 2*M_PI*pow(Models_r,2)*(Models_rho*(1/(1+x)/x));//important
   else {
     double rho0 = Models_rho*(1/(x0*x0*(1+x0)));
     double rho = rho0 *( 1 - pow(1-pow((x-xmax)/(xmax-x0) ,2) ,0.5 ) );
@@ -268,14 +268,14 @@ double mass_base_Jaffe_trunc(double x,void* trunc_fac){
 
 //Hernquist
 double mass_base_Hernquist(double x,void* nothing){
-    return 4*M_PI*pow(Models_r,3)*(Models_rho*(x/((1+x)*(1+x)*(1+x))));
+    return 2*M_PI*pow(Models_r,2)*(Models_rho*(1/((1+x)*(1+x)*(1+x)*x)));//important
 }
 double mass_base_Hernquist_trunc(double x,void* trunc_fac){
   double fac = *(double *) trunc_fac;
   double x0 = fac*Models_maxr/Models_r;
   double xmax = Models_maxr/Models_r;
   
-  if(x<x0) return 4*M_PI*pow(Models_r,3)*(Models_rho*(x/((1+x)*(1+x)*(1+x))));
+  if(x<x0) return 2*M_PI*pow(Models_r,2)*(Models_rho*(1/((1+x)*(1+x)*(1+x)*x)));//important
   else {
     double rho0 = Models_rho*(1/(x0*(1+x0)*(1+x0)*(1+x0)));
     double rho = rho0 *( 1 - pow(1-pow((x-xmax)/(xmax-x0) ,2) ,0.5 ) );
@@ -285,15 +285,15 @@ double mass_base_Hernquist_trunc(double x,void* trunc_fac){
 
 //Einasto
 double mass_base_Einasto(double x,void *nothing){
-  return 4*M_PI*Models_rho*pow(Models_r,3)*pow(x,2) *exp(-pow(x,alpha));
+  return 2*M_PI*Models_rho*pow(Models_r,2)*pow(x,1) *exp(-pow(x,alpha));//important
 }
 double mass_base_Einasto_trunc(double x,void *nothing){
-  return 4*M_PI*Models_rho*pow(Models_r,3)*pow(x,2) *exp(-pow(x,alpha));
+  return 2*M_PI*Models_rho*pow(Models_r,2)*pow(x,1) *exp(-pow(x,alpha));//important
 }
 double test(double x,void *nothing){
-  return 4*M_PI*Models_rho*pow(Models_r,3)*pow(x,2) *exp(-pow(x,alpha));
+  return 2*M_PI*Models_rho*pow(Models_r,2)*pow(x,1) *exp(-pow(x,alpha));//important
 }
-double Particle_IC_Constructor::set_rho(double x){
+double Particle_IC_Constructor_2D::set_rho(double x){
   if (model_type == "UNKNOWN"){
     if(x>=Table_MassProf_r_Models[Models_massprofnbin-1])return Table_MassProf_rho_Models[Models_massprofnbin-1];
     return Interpolation( Models_massprofnbin, Table_MassProf_r_Models, Table_MassProf_rho_Models, x*Models_r );
@@ -319,11 +319,11 @@ double Particle_IC_Constructor::set_rho(double x){
       else if(model_type=="Hernquist")rho=mass_base_Hernquist(x,nothing);
       else if(model_type=="Einasto")rho=mass_base_Einasto(x,nothing);
     }
-    return rho/(4*M_PI*pow(x,2)*pow(Models_r,3));
+    return rho/(2*M_PI*pow(x,1)*pow(Models_r,2));//important
   }
   
 }
-double Particle_IC_Constructor::set_mass(double r){
+double Particle_IC_Constructor_2D::set_mass(double r){
   
   double x = r/Models_r;
   if (model_type == "UNKNOWN"){
@@ -369,7 +369,7 @@ double Particle_IC_Constructor::set_mass(double r){
   }
   
 }
-void Particle_IC_Constructor::initialize_mass_UNKNOWN(int Models_massprofnbin){
+void Particle_IC_Constructor_2D::initialize_mass_UNKNOWN(int Models_massprofnbin){
   
   //Mass
   Table_MassProf_M_Models[0]=0;
@@ -379,7 +379,7 @@ void Particle_IC_Constructor::initialize_mass_UNKNOWN(int Models_massprofnbin){
     rho = (Table_MassProf_rho_Models[b] + Table_MassProf_rho_Models[b-1])/2;
     dr = Table_MassProf_r_Models[b] - Table_MassProf_r_Models[b-1];
     r = (Table_MassProf_r_Models[b] + Table_MassProf_r_Models[b-1])/2;
-    Table_MassProf_M_Models[b] = Table_MassProf_M_Models[b-1] + 4*M_PI*pow(r,2) *rho * dr;
+    Table_MassProf_M_Models[b] = Table_MassProf_M_Models[b-1] + 2*M_PI*pow(r,1) *rho * dr;//important
 
   }
 
@@ -400,17 +400,17 @@ void Particle_IC_Constructor::initialize_mass_UNKNOWN(int Models_massprofnbin){
   
 }
 
-void Particle_IC_Constructor::initialize_pot_UNKNOWN(int Models_massprofnbin){
+void Particle_IC_Constructor_2D::initialize_pot_UNKNOWN(int Models_massprofnbin){
   
   
 
   Table_MassProf_g_Models[0] =0;
   for (int b=1; b<Models_massprofnbin; b++)
   {
-    Table_MassProf_g_Models[b] = -Models_NEWTON_G*Table_MassProf_M_Models[b]/pow(Table_MassProf_r_Models[b],2); 
+    Table_MassProf_g_Models[b] = -2*Models_NEWTON_G*Table_MassProf_M_Models[b]/pow(Table_MassProf_r_Models[b],1); //important
   }
   //Pot
-  Table_MassProf_pot_Models[Models_massprofnbin-1] = -Models_NEWTON_G*Table_MassProf_M_Models[Models_massprofnbin-1]/Table_MassProf_r_Models[Models_massprofnbin-1];
+  Table_MassProf_pot_Models[Models_massprofnbin-1] = 0;//-Models_NEWTON_G*Table_MassProf_M_Models[Models_massprofnbin-1]/Table_MassProf_r_Models[Models_massprofnbin-1];//important
   eng_min_Models = -Table_MassProf_pot_Models[Models_massprofnbin-1];
   for (int b=Models_massprofnbin-2;b>0;b--)
   {
@@ -428,7 +428,7 @@ void Particle_IC_Constructor::initialize_pot_UNKNOWN(int Models_massprofnbin){
   
 }
 
-void Particle_IC_Constructor::initialize_mass_others(){
+void Particle_IC_Constructor_2D::initialize_mass_others(){
   
   double dr = Models_maxr / (Models_massprofnbin-1);
   //Radius & Mass
@@ -463,18 +463,18 @@ void Particle_IC_Constructor::initialize_mass_others(){
   
 }
 
-void Particle_IC_Constructor::initialize_pot_others(){
+void Particle_IC_Constructor_2D::initialize_pot_others(){
 
   double dr = Models_maxr / (Models_massprofnbin-1);
 
   Table_MassProf_g_Models[0] =0;
   for (int b=1; b<Models_massprofnbin; b++)
   {
-    Table_MassProf_g_Models[b] = -Models_NEWTON_G*Table_MassProf_M_Models[b]/pow(Table_MassProf_r_Models[b],2);
+    Table_MassProf_g_Models[b] = -2*Models_NEWTON_G*Table_MassProf_M_Models[b]/pow(Table_MassProf_r_Models[b],1);//important
     
   }
   //Pot
-  Table_MassProf_pot_Models[Models_massprofnbin-1] = -Models_NEWTON_G*Table_MassProf_M_Models[Models_massprofnbin-1]/Table_MassProf_r_Models[Models_massprofnbin-1];
+  Table_MassProf_pot_Models[Models_massprofnbin-1] = 0;//-Models_NEWTON_G*Table_MassProf_M_Models[Models_massprofnbin-1]/Table_MassProf_r_Models[Models_massprofnbin-1];//important
   eng_min_Models = -Table_MassProf_pot_Models[Models_massprofnbin-1];
   for (int b=Models_massprofnbin-2;b>0;b--)
   {
@@ -489,7 +489,7 @@ void Particle_IC_Constructor::initialize_pot_others(){
   }
   
 }
-void Particle_IC_Constructor::initialize_prob_dens(){
+void Particle_IC_Constructor_2D::initialize_prob_dens(){
   double min,max;
   min=-Table_MassProf_pot_Models[Models_massprofnbin-1];
   max =-Table_MassProf_pot_Models[1];
@@ -517,7 +517,7 @@ void Particle_IC_Constructor::initialize_prob_dens(){
   smooth_all(prob_dens,0,size_Models);
 }
 
-void Particle_IC_Constructor::init(string type,double al,double newton_g,double rho,double r,int nbin,double rmax,int rseed,bool trunc_flag,double trunc_fac,int r_col,int rho_col,const char* Filename){
+void Particle_IC_Constructor_2D::init(string type,double al,double newton_g,double rho,double r,int nbin,double rmax,int rseed,bool trunc_flag,double trunc_fac,int r_col,int rho_col,const char* Filename){
   Table_MassProf_r_Models=NULL;
   Table_MassProf_M_Models=NULL;
   Table_MassProf_rho_Models=NULL;
@@ -580,42 +580,14 @@ void Particle_IC_Constructor::init(string type,double al,double newton_g,double 
 
   
 }
-double Particle_IC_Constructor::set_vel(double x){ 
-
-  double index,sum=0;
-  double psi_per =-potential_Models(x);
-  for(int k =0;k<size_Models;k++){
-    if(psi[k]>psi_per){
-      index =k-1;
-      break;
-    }
-    sum += prob_dens[k] *pow(psi_per-psi[k],0.5) *delta;
-  }
-
-  double sum_rad,sum_mes=0,par,psi_ass;
-  int index_ass;
-
-  sum_rad = randomReal(0., 1.); 
-  sum_rad*=sum;
-
-  for(int k =0;k<size_Models;k++){
-    index_ass =k-1;
-    if(sum_mes>sum_rad){
-      par = (sum_mes-sum_rad)/(prob_dens[index_ass] *pow(psi_per-psi[index_ass],0.5) *delta);
-      break;
-      }
-    sum_mes += prob_dens[k] *pow(psi_per-psi[k],0.5) *delta;
-  }
-  psi_ass = psi[index_ass] +delta *par;
-  
-  if(-2*(psi_ass+potential_Models(x))<0){
-    return 0;
-  }
-  double v =pow(-2*(psi_ass+potential_Models(x)),0.5);
-  
-  return v;
+double Particle_IC_Constructor_2D::set_vel(double x){ 
+  double rho_high = Interpolation(Models_massprofnbin,Table_MassProf_r_Models,Table_MassProf_rho_Models,x*Models_r);
+  double rho_low = Table_MassProf_rho_Models[Models_massprofnbin-1];
+  double rho_rand = randomReal(rho_low,rho_high);
+  double pot_chosen = Interpolation(Models_massprofnbin,Table_MassProf_rho_Models,Table_MassProf_pot_Models,rho_rand);
+  return pow(2*fabs(pot_chosen-potential_Models(x)),0.5);
 }  
-double Particle_IC_Constructor::set_radius(){  
+double Particle_IC_Constructor_2D::set_radius(){  
   double Enclosed_mass=Table_MassProf_M_Models[Models_massprofnbin-1];
 
   double x = randomReal(0.,1.);
@@ -627,7 +599,7 @@ double Particle_IC_Constructor::set_radius(){
   
   return radius;
 }  
-double Particle_IC_Constructor::set_vel_test(double r){  
+double Particle_IC_Constructor_2D::set_vel_test(double r){  
   const double TotM_Inf    = 4.0/3.0*M_PI*CUBE(Models_r)*Models_rho;
   const double Vmax_Fac    = sqrt( 2.0*Models_NEWTON_G*TotM_Inf );
 
@@ -648,7 +620,7 @@ double Particle_IC_Constructor::set_vel_test(double r){
   return RanV*Vmax;
 }  
 
-double Particle_IC_Constructor::vel_dispersion(double x){   
+/*double Particle_IC_Constructor_2D::vel_dispersion(double x){   
 
   double index,norm=0,v2_norm = 0;
   double psi_per =-potential_Models(x);
@@ -668,7 +640,7 @@ double Particle_IC_Constructor::vel_dispersion(double x){
   return v2_norm/norm*2;
   return 0;
 }  
-double Particle_IC_Constructor::specific_prob(double x,double vm){   
+double Particle_IC_Constructor_2D::specific_prob(double x,double vm){   
 
   double index,norm=0,wanted = 0;
   double psi_per =-potential_Models(x);
@@ -688,4 +660,4 @@ double Particle_IC_Constructor::specific_prob(double x,double vm){
   
   return wanted/norm;
   return 0;
-}  
+}  */

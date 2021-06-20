@@ -1,5 +1,5 @@
 CC = g++ -std=c++11
-OBJ = main.o Particle_IC_Constructor.o FileTreatment_Interpolation.o
+OBJ = main.o Particle_IC_Constructor_2D.o FileTreatment_Interpolation.o
 
 OPENFLAG=-fopenmp
 LIB = -L/home/return/gsl/lib -lgsl -lgslcblas

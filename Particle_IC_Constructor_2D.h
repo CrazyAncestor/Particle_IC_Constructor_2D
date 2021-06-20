@@ -1,5 +1,5 @@
-#ifndef Particle_IC_Constructor_H
-#define Particle_IC_Constructor_H
+#ifndef Particle_IC_Constructor_2D_H
+#define Particle_IC_Constructor_2D_H
 
 #define DEBUG
 #include<random>
@@ -49,11 +49,11 @@ typedef struct Models_Input_Parameter{
 }MP;
 
 
-class Particle_IC_Constructor
+class Particle_IC_Constructor_2D
 {
     public:
-        Particle_IC_Constructor();
-        virtual ~Particle_IC_Constructor();
+        Particle_IC_Constructor_2D();
+        virtual ~Particle_IC_Constructor_2D();
         void init(string type,double al,double newton_g,double rho,double r,int nbin,double rmax,int rseed,bool trunc_flag,double trunc_fac,int r_col,int rho_col,const char* Filename);        
         double set_vel(double x);
         double set_radius();
@@ -110,4 +110,4 @@ class Particle_IC_Constructor
 
 };
 
-#endif //Particle_IC_Constructor_H
+#endif //Particle_IC_Constructor_2D_H

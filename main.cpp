@@ -1,7 +1,7 @@
-#include "Particle_IC_Constructor.h"
+#include "Particle_IC_Constructor_2D.h"
 #define box_size 0
 #define PI 3.14159265
-Particle_IC_Constructor   constructor_Models; 
+Particle_IC_Constructor_2D   constructor_Models; 
 //Parameters
 int Models_RSeed        =   123 ;                 // random seed for setting particle position and velocity (>=0) [123]
 double Models_Rho0          =  665.3026853292198;     // peak density [unit: M mass of sun/kpc^3]

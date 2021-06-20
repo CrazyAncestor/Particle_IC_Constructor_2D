@@ -1,4 +1,4 @@
-#include "Particle_IC_Constructor.h"
+#include "Particle_IC_Constructor_2D.h"
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Aux_CountRow
